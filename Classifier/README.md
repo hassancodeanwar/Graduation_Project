@@ -300,48 +300,66 @@ class ImageClassificationModel:
 ```
 
 
-
+---
 # Initialize model
 ```python
 data_directory = '/path/to/your/data'
 model = ImageClassificationModel(data_dir=data_directory, img_size=(256, 256), batch_size=32)
 ```
 
-
-```python
-import os
-import json
-import pickle
-import tensorflow as tf
-from your_module import ImageClassificationModel  # Replace with your actual module name
-
-# Initialize model
-data_directory = '/path/to/your/data'
-model = ImageClassificationModel(data_dir=data_directory, img_size=(256, 256), batch_size=32)
+---
 
 # Prepare data
+```python
 model.prepare_data()
+```
+
+---
 
 # Build model
-model.build_model()
+```python
+model.prepare_data()
+```
+
+---
 
 # Train the model
-model.train(epochs=50, initial_lr=1e-4)
-
-# Optionally fine-tune the model
-model.fine_tune(epochs=30, lr=1e-5, fine_tune_at=256)
-
-# Evaluate the model
-model.evaluate(plot_confusion_matrix=True)
-
-# Plot training history
-model.plot_training_history()
-
-# Save the model
-model.save_model(save_dir='final_model_directory')
-
-# Save training history
-model.save_training_history(history_path='history.json')
+```python
+model.prepare_data()
 
 ```
 
+---
+# Evaluate the model
+```python
+
+model.evaluate(plot_confusion_matrix=True)
+```
+
+---
+# Optionally fine-tune the model
+```python
+
+model.fine_tune(epochs=30, lr=1e-5, fine_tune_at=256)
+```
+
+---
+# Plot training history
+```python
+
+model.plot_training_history()
+```
+
+---
+# Save the model
+```python
+
+model.save_model(save_dir='final_model_directory')
+```
+
+---
+# Save training history
+```python
+
+model.save_training_history(history_path='history.json')
+```
