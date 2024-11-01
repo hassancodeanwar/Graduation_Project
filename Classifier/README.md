@@ -1,4 +1,8 @@
-# Data sorce: https://www.kaggle.com/datasets/salviohexia/isic-2019-skin-lesion-images-for-classification
+# Data sorce: 
+- https://www.kaggle.com/datasets/salviohexia/isic-2019-skin-lesion-images-for-classification
+
+- A deep learning model class for skin lesion image classification using EfficientNet.
+Supports data preparation, model building, training, evaluation, fine-tuning, and saving/loading model and training history.
 
 
 # Imports
