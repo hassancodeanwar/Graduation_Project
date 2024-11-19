@@ -121,6 +121,39 @@ def prepare_balanced_dataset(augmented_dir, nv_data_dir, target_count=7500):
     train_df, val_df = train_test_split(train_df, test_size=0.15, stratify=train_df['labels'], random_state=42)
     return train_df, val_df, test_df
 
+
+
+
+
+
+class AccuracyThresholdCheckpoint(tf.keras.callbacks.Callback):
+    def __init__(self, threshold=0.95, save_dir="models_at_95_accuracy"):
+        super().__init__()
+        self.threshold = threshold
+        self.save_dir = save_dir
+        self.last_saved_model_path = None
+        self.last_saved_accuracy = 0.0  # Track the highest saved accuracy
+
+        # Ensure the directory for saving models exists
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+
+    def on_epoch_end(self, epoch, logs=None):
+        accuracy = logs.get("accuracy")
+        if accuracy and accuracy >= self.threshold and accuracy > self.last_saved_accuracy:
+            # Delete the last saved model if it exists
+            if self.last_saved_model_path and os.path.exists(self.last_saved_model_path):
+                os.remove(self.last_saved_model_path)
+                logging.info(f"Deleted previous model at {self.last_saved_model_path} with accuracy {self.last_saved_accuracy*100:.2f}%")
+
+            # Save the new model with the current accuracy
+            timestamp = time.strftime("%Y%m%d-%H%M%S")
+            self.last_saved_model_path = os.path.join(self.save_dir, f"model_at_{accuracy*100:.2f}_accuracy_{timestamp}.h5")
+            self.model.save(self.last_saved_model_path)
+            self.last_saved_accuracy = accuracy  # Update the last saved accuracy
+
+            logging.info(f"Saved new model at {self.last_saved_model_path} with accuracy {accuracy*100:.2f}%")
+
 # Image Classification Model Class
 class ImageClassificationModel:
     def __init__(self, train_df, val_df, test_df, img_size=(224, 224), batch_size=8, model_name='VGG19'):
