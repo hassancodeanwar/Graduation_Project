@@ -80,46 +80,46 @@ from tensorflow.keras import mixed_precision
 AUGMENTED_DIR = '/kaggle/working/augmented_images/'
 NV_DATA_DIR = '/kaggle/input/isic-2019-skin-lesion-images-for-classification/NV/'
 
-# # Logging setup
-# log_dir = "logs"
-# os.makedirs(log_dir, exist_ok=True)
-# log_file = os.path.join(log_dir, "training_log.txt")
+# Logging setup
+log_dir = "logs"
+os.makedirs(log_dir, exist_ok=True)
+log_file = os.path.join(log_dir, "training_log.txt")
 
-# logging.basicConfig(
-#     level=logging.INFO,
-#     format="%(asctime)s - %(levelname)s - %(message)s",
-#     handlers=[logging.FileHandler(log_file), logging.StreamHandler()]
-# )
-# logging.info("Logging initialized.")
-# print("Logging initialized.")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler(log_file), logging.StreamHandler()]
+)
+logging.info("Logging initialized.")
+print("Logging initialized.")
 
-# # Mixed precision setup
-# policy = mixed_precision.Policy('mixed_float16')
-# mixed_precision.set_global_policy(policy)
+# Mixed precision setup
+policy = mixed_precision.Policy('mixed_float16')
+mixed_precision.set_global_policy(policy)
 
-# # Load dataset
-# def load_dataset(data_dir):
-#     filepaths = glob.glob(os.path.join(data_dir, '*', '*'))
-#     labels = [os.path.basename(os.path.dirname(fp)) for fp in filepaths]
-#     return pd.DataFrame({'filepaths': filepaths, 'labels': labels})
+# Load dataset
+def load_dataset(data_dir):
+    filepaths = glob.glob(os.path.join(data_dir, '*', '*'))
+    labels = [os.path.basename(os.path.dirname(fp)) for fp in filepaths]
+    return pd.DataFrame({'filepaths': filepaths, 'labels': labels})
 
-# # Prepare balanced dataset
-# def prepare_balanced_dataset(augmented_dir, nv_data_dir, target_count=7500):
-#     augmented_df = load_dataset(augmented_dir)
-#     nv_filepaths = glob.glob(os.path.join(nv_data_dir, '*'))
-#     nv_labels = ['NV'] * len(nv_filepaths)
-#     filepaths = augmented_df['filepaths'].tolist() + nv_filepaths
-#     labels = augmented_df['labels'].tolist() + nv_labels
-#     df = pd.DataFrame({'filepaths': filepaths, 'labels': labels})
-#     nv_df = df[df['labels'] == 'NV']
-#     other_classes_df = df[df['labels'] != 'NV']
-#     nv_sampled_df = nv_df.sample(n=target_count, random_state=42)
-#     balanced_df = pd.concat([other_classes_df, nv_sampled_df], ignore_index=True)
-#     print("Balanced label distribution:")
-#     print(balanced_df['labels'].value_counts())
-#     train_df, test_df = train_test_split(balanced_df, test_size=0.2, stratify=balanced_df['labels'], random_state=42)
-#     train_df, val_df = train_test_split(train_df, test_size=0.15, stratify=train_df['labels'], random_state=42)
-#     return train_df, val_df, test_df
+# Prepare balanced dataset
+def prepare_balanced_dataset(augmented_dir, nv_data_dir, target_count=7500):
+    augmented_df = load_dataset(augmented_dir)
+    nv_filepaths = glob.glob(os.path.join(nv_data_dir, '*'))
+    nv_labels = ['NV'] * len(nv_filepaths)
+    filepaths = augmented_df['filepaths'].tolist() + nv_filepaths
+    labels = augmented_df['labels'].tolist() + nv_labels
+    df = pd.DataFrame({'filepaths': filepaths, 'labels': labels})
+    nv_df = df[df['labels'] == 'NV']
+    other_classes_df = df[df['labels'] != 'NV']
+    nv_sampled_df = nv_df.sample(n=target_count, random_state=42)
+    balanced_df = pd.concat([other_classes_df, nv_sampled_df], ignore_index=True)
+    print("Balanced label distribution:")
+    print(balanced_df['labels'].value_counts())
+    train_df, test_df = train_test_split(balanced_df, test_size=0.2, stratify=balanced_df['labels'], random_state=42)
+    train_df, val_df = train_test_split(train_df, test_size=0.15, stratify=train_df['labels'], random_state=42)
+    return train_df, val_df, test_df
 
 # Image Classification Model Class
 class ImageClassificationModel:
@@ -243,7 +243,7 @@ def main():
     model.train(epochs=300)
     model.evaluate()
 
-if __name__ == "__main__":
+
     
 if __name__ == "__main__":
     augment_images(DATA_DIR, AUGMENTED_DIR, samples_per_class=7500)
