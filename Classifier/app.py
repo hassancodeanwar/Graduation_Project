@@ -1,99 +1,77 @@
+# app.py
 import os
+from flask import Flask, render_template, request, jsonify
+from PIL import Image
 import numpy as np
-from flask import Flask, request, jsonify
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image
 import tensorflow as tf
+from werkzeug.utils import secure_filename
 
-# Initialize Flask app
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
-# Load pre-trained model
-MODEL_PATH = 'model.h5'
-model = load_model(MODEL_PATH)
+# Ensure upload directory exists
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# Mapping of class indices to labels
-LABEL_MAP = {
-    0: 'Pigmented Benign Keratosis',
-    1: 'Melanoma',
-    2: 'Vascular Lesion',
-    3: 'Actinic Keratosis',
-    4: 'Squamous Cell Carcinoma',
-    5: 'Basal Cell Carcinoma',
-    6: 'Seborrheic Keratosis',
-    7: 'Dermatofibroma',
-    8: 'Nevus'
-}
+# Load the model
+model = tf.keras.models.load_model('skin_cancer_classifier_model.h5')
 
-def preprocess_image(img_path):
-    """Preprocess the input image for prediction"""
-    img = image.load_img(img_path, target_size=(75, 100))
-    img_array = image.img_to_array(img)
+# Class labels
+CLASSES = [
+    'Actinic Keratosis',
+    'Basal Cell Carcinoma',
+    'Dermatofibroma',
+    'Melanoma',
+    'Nevus',
+    'Pigmented Benign Keratosis',
+    'Seborrheic Keratosis',
+    'Squamous Cell Carcinoma',
+    'Vascular Lesion'
+]
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg'}
+
+def process_image(image_path):
+    """Process image for prediction"""
+    img = Image.open(image_path)
+    img = img.resize((100, 75))
+    img_array = np.array(img)
     img_array = np.expand_dims(img_array, axis=0)
-    
-    # Normalize the image
     img_array = (img_array - np.mean(img_array)) / np.std(img_array)
-    
     return img_array
+
+@app.route('/')
+def home():
+    return render_template('index.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    """Endpoint for skin disease prediction"""
-    # Check if image is in the request
     if 'file' not in request.files:
         return jsonify({'error': 'No file uploaded'}), 400
     
     file = request.files['file']
-    
-    # Check if filename is empty
     if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
+        return jsonify({'error': 'No file selected'}), 400
     
-    # Save the uploaded file temporarily
-    file_path = os.path.join('uploads', file.filename)
-    file.save(file_path)
-    
-    try:
-        # Preprocess the image
-        processed_image = preprocess_image(file_path)
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
         
-        # Make prediction
-        predictions = model.predict(processed_image)
-        predicted_class = np.argmax(predictions, axis=1)[0]
-        
-        # Get the label and confidence
-        label = LABEL_MAP[predicted_class]
-        confidence = float(np.max(predictions) * 100)
-        
-        # Remove the temporary file
-        os.remove(file_path)
+        # Process image and make prediction
+        img_array = process_image(filepath)
+        predictions = model.predict(img_array)
+        predicted_class = CLASSES[np.argmax(predictions[0])]
+        confidence = float(np.max(predictions[0]) * 100)
         
         return jsonify({
-            'disease': label,
-            'confidence': confidence
+            'class': predicted_class,
+            'confidence': confidence,
+            'image_path': f'uploads/{filename}'
         })
     
-    except Exception as e:
-        # Remove the temporary file in case of error
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/', methods=['GET'])
-def home():
-    """Simple home route"""
-    return """
-    <h1>Skin Disease Classifier</h1>
-    <p>Upload an image to predict skin disease</p>
-    <form action="/predict" method="post" enctype="multipart/form-data">
-        <input type="file" name="file">
-        <input type="submit" value="Predict">
-    </form>
-    """
+    return jsonify({'error': 'Invalid file type'}), 400
 
 if __name__ == '__main__':
-    # Create uploads directory if it doesn't exist
-    os.makedirs('uploads', exist_ok=True)
-    
-    # Run the Flask app
     app.run(debug=True)

@@ -1,140 +1,52 @@
+<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skin Disease Classifier</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            text-align: center;
-            background-color: #f4f4f4;
-        }
-        .container {
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            padding: 30px;
-        }
-        #imagePreview {
-            max-width: 300px;
-            max-height: 300px;
-            margin: 20px auto;
-            display: none;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        #uploadForm {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        #fileInput {
-            margin-bottom: 15px;
-            padding: 10px;
-            border: 2px dashed #aaa;
-            border-radius: 5px;
-            cursor: pointer;
-            background-color: #fff;
-        }
-        #fileInput:hover {
-            border-color: #4CAF50;
-        }
-        #predictButton {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        #predictButton:hover {
-            background-color: #45a049;
-        }
-        #loading {
-            display: none;
-            margin-top: 10px;
-            font-size: 14px;
-            color: #555;
-        }
-        #result {
-            margin-top: 20px;
-            font-weight: bold;
-        }
-    </style>
+    <title>Skin Cancer Classifier</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1>Skin Disease Classifier</h1>
-        <form id="uploadForm">
-            <input type="file" id="fileInput" accept="image/*">
-            <img id="imagePreview" src="#" alt="Image Preview">
-            <button type="button" id="predictButton">Predict Disease</button>
-        </form>
-        <p id="loading">Processing...</p>
-        <div id="result"></div>
+        <header>
+            <h1>Skin Cancer Classification</h1>
+            <p>Upload a skin lesion image for analysis</p>
+        </header>
+
+        <main>
+            <div class="upload-section">
+                <div class="upload-box" id="dropZone">
+                    <input type="file" id="fileInput" accept="image/*" hidden>
+                    <div class="upload-content">
+                        <img src="{{ url_for('static', filename='upload-icon.svg') }}" alt="Upload" id="uploadIcon">
+                        <p>Drag and drop or click to upload</p>
+                        <button class="upload-btn">Choose File</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-section" style="display: none;">
+                <div class="image-preview">
+                    <img id="previewImage" src="" alt="Preview">
+                </div>
+                <div class="results" style="display: none;">
+                    <h2>Analysis Results</h2>
+                    <div class="result-content">
+                        <p>Classification: <span id="classification"></span></p>
+                        <p>Confidence: <span id="confidence"></span>%</p>
+                    </div>
+                </div>
+                <button class="analyze-btn">Analyze Image</button>
+            </div>
+
+            <div class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Analyzing image...</p>
+            </div>
+        </main>
     </div>
 
-    <script>
-        const fileInput = document.getElementById('fileInput');
-        const imagePreview = document.getElementById('imagePreview');
-        const predictButton = document.getElementById('predictButton');
-        const resultDiv = document.getElementById('result');
-        const loadingText = document.getElementById('loading');
-
-        fileInput.addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    imagePreview.src = e.target.result;
-                    imagePreview.style.display = 'block';
-                    resultDiv.textContent = '';  // Clear previous result
-                }
-                reader.readAsDataURL(file);
-            }
-        });
-
-        predictButton.addEventListener('click', function() {
-            const file = fileInput.files[0];
-            if (!file) {
-                resultDiv.textContent = 'Please upload an image first.';
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('file', file);
-
-            // Disable button and show loading
-            predictButton.disabled = true;
-            loadingText.style.display = 'block';
-
-            fetch('/predict', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.disease) {
-                    resultDiv.textContent = `Predicted Disease: ${data.disease} (${data.confidence.toFixed(2)}% confidence)`;
-                } else {
-                    resultDiv.textContent = 'Error predicting disease.';
-                }
-            })
-            .catch(error => {
-                resultDiv.textContent = 'An error occurred during prediction.';
-                console.error('Error:', error);
-            })
-            .finally(() => {
-                // Enable button and hide loading text
-                predictButton.disabled = false;
-                loadingText.style.display = 'none';
-            });
-        });
-    </script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
