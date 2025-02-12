@@ -1,3 +1,4 @@
 model.h5 filter=lfs diff=lfs merge=lfs -text
 *.h5 filter=lfs diff=lfs merge=lfs -text
 skin_cancer_classifier_model.h5 filter=lfs diff=lfs merge=lfs -text
+_model.h5 filter=lfs diff=lfs merge=lfs -text
