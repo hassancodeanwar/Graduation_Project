@@ -8,25 +8,25 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+app.config['MAX_CONTENT_LENGTH'] = 25 * 1024 * 1024  # 25MB max file size
 
 # Ensure upload directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Load the model
-model = tf.keras.models.load_model('skin_cancer_classifier_model.h5')
+model = tf.keras.models.load_model('_model.h5')
 
 # Class labels
 CLASSES = [
-    'Actinic Keratosis',
-    'Basal Cell Carcinoma',
-    'Dermatofibroma',
+    'Pigmented benign keratosis',
     'Melanoma',
-    'Nevus',
-    'Pigmented Benign Keratosis',
-    'Seborrheic Keratosis',
-    'Squamous Cell Carcinoma',
-    'Vascular Lesion'
+    'Vascular lesion',
+    'Actinic keratosis',
+    'Squamous cell carcinoma',
+    'Basal cell carcinoma',
+    'Seborrheic keratosis',
+    'Dermatofibroma',
+    'Nevus'
 ]
 
 def allowed_file(filename):
@@ -35,7 +35,7 @@ def allowed_file(filename):
 def process_image(image_path):
     """Process image for prediction"""
     img = Image.open(image_path)
-    img = img.resize((100, 75))
+    img = img.resize((128, 128))
     img_array = np.array(img)
     img_array = np.expand_dims(img_array, axis=0)
     img_array = (img_array - np.mean(img_array)) / np.std(img_array)
